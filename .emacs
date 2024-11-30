@@ -6,6 +6,9 @@
 (setq ring-bell-function 'ignore)        ;; 关闭错误提示音
 (global-display-line-numbers-mode t)     ;; 显示行号
 (defalias 'yes-or-no-p 'y-or-n-p)        ;; 使用 y/n 代替 yes/no
+(setq make-backup-files nil)             ;; 禁用备份文件
+;;(setq auto-save-default nil)             ;; 禁用自动保存文件
+(setq create-lockfiles nil)              ;; 禁用锁定文件
 
 ;; ------------------------
 ;; 设置编码
@@ -131,11 +134,18 @@
 
 
 (require 'eglot)
-(add-to-list 'eglot-server-programs '((c++-mode c-mode c++-ts-mode c-ts-mode) "clangd"))
+
+(setq eglot-server-programs
+      '(((c++-mode c-mode c++-ts-mode c-ts-mode) . ("clangd"))
+        ((rust-ts-mode rust-mode) . ("rust-analyzer"
+                                     :initializationOptions
+                                     (:checkCommand "clippy")))))
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 (add-hook 'c-ts-mode-hook 'eglot-ensure)
 (add-hook 'c++-ts-mode-hook 'eglot-ensure)
+(add-hook 'rust-mode-hook 'eglot-ensure)
+(add-hook 'rust-ts-mode-hook 'eglot-ensure)
 
 ;; ------------------------
 ;; Company-mode 自动补全配置
@@ -161,11 +171,6 @@
 ;; UI界面
 ;;---------------------------------
 ;; 安装 neotree,文件浏览侧边栏
-(use-package all-the-icons
-  :ensure t
-  :config
-  (unless (member "all-the-icons" (font-family-list))
-    (all-the-icons-install-fonts t)))
 
 (use-package neotree
   :ensure t
@@ -173,6 +178,13 @@
   :config
   (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
   (setq neo-window-fixed-size nil))
+
+(use-package all-the-icons
+  :ensure t
+  :config
+  (unless (member "all-the-icons" (font-family-list))
+    (all-the-icons-install-fonts t)))
+
 
 
 
