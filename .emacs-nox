@@ -1,0 +1,92 @@
+(setq inhibit-startup-message t)
+(setq initial-scratch-message nil)
+(menu-bar-mode -1)
+(setq ring-bell-function 'ignore)
+(global-display-line-numbers-mode t)
+(defalias 'yes-or-no-p 'y-or-n-p)
+(setq make-backup-files nil)
+(setq create-lockfiles nil)
+
+
+(prefer-coding-system 'utf-8)
+(setq locale-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(setq-default buffer-file-coding-system 'utf-8)
+
+
+(setq-default indent-tabs-mode nil)
+(setq find-file-encoding 'auto)
+(setq-default coding-system-for-read 'utf-8)
+(setq-default coding-system-for-write 'utf-8)
+
+
+(use-package package
+  :config
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (unless (bound-and-true-p package--initialized)
+    (package-initialize)))
+
+(setq use-package-always-ensure t)
+
+
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+
+
+(use-package tree-sitter
+  :when (and (fboundp 'treesit-available-p)
+         (treesit-available-p))
+  :config (setq treesit-font-lock-level 4)
+  :init
+  (setq treesit-language-source-alist
+    '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash"))
+      (c          . ("https://github.com/tree-sitter/tree-sitter-c"))
+      (cpp        . ("https://github.com/tree-sitter/tree-sitter-cpp"))
+      (python     . ("https://github.com/tree-sitter/tree-sitter-python"))
+      (rust       . ("https://github.com/tree-sitter/tree-sitter-rust")))))
+
+(require 'eglot)
+
+(setq eglot-server-programs
+      '(((c++-mode c-mode) . ("clangd"))
+        ((rust-mode) . ("rust-analyzer"))))
+
+(add-hook 'c-mode-hook 'eglot-ensure)
+(add-hook 'c++-mode-hook 'eglot-ensure)
+(add-hook 'rust-mode-hook 'eglot-ensure)
+
+
+(use-package company :ensure t :defer t
+  :hook (after-init . global-company-mode))
+
+
+(use-package format-all
+  :ensure t
+  :commands format-all-mode
+  :hook (prog-mode . format-all-mode)
+  :config
+  (setq-default format-all-formatters
+                '(("C" (clang-format)))))
+
+(global-set-key (kbd "C-x f") 'format-all-buffer)
+
+
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(page-break-lines dashboard breadcrumb all-the-icons treesit-ispell treesit-auto tree-sitter neotree format-all flycheck exec-path-from-shell company)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
