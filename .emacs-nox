@@ -6,7 +6,20 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq make-backup-files nil)
 (setq create-lockfiles nil)
+(setq-default indent-tabs-mode nil)    ;; 不使用 TAB 字符，使用空格
+(setq-default tab-width 2)             ;; tab 宽度设为 2 空格
 
+(global-visual-line-mode 1)
+(load-theme 'wombat t)
+(electric-pair-mode 1)
+
+(global-set-key (kbd "C-/") 'undo-only)
+(global-set-key (kbd "C-?") 'undo-redo)
+;; 快捷键绑定：使用 Ctrl + Shift + 方向键 调整窗口大小
+(global-set-key (kbd "M-<up>")    'enlarge-window)
+(global-set-key (kbd "M-<down>")  'shrink-window)
+(global-set-key (kbd "M-<left>")  'shrink-window-horizontally)
+(global-set-key (kbd "M-<right>") 'enlarge-window-horizontally)
 
 (prefer-coding-system 'utf-8)
 (setq locale-coding-system 'utf-8)
@@ -21,10 +34,16 @@
 (setq-default coding-system-for-read 'utf-8)
 (setq-default coding-system-for-write 'utf-8)
 
+;;(setq package-archives
+;;      '(("melpa" . "https://melpa.org/packages/")
+;;        ("gnu"   . "https://elpa.gnu.org/packages/")))
+
+(setq package-archives '(("gnu"    . "https://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                         ("nongnu" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")
+                         ("melpa"  . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (use-package package
   :config
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
   (unless (bound-and-true-p package--initialized)
     (package-initialize)))
 
@@ -37,28 +56,55 @@
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
+(use-package markdown-mode
+  :ensure t
+  :mode ("\\.md\\'" . markdown-mode)
+  :config
+  (setq markdown-command "pandoc"))  ;; 可选:指定 Markdown 渲染工具
+
 
 (use-package tree-sitter
   :when (and (fboundp 'treesit-available-p)
-         (treesit-available-p))
+             (treesit-available-p))
   :config (setq treesit-font-lock-level 4)
   :init
   (setq treesit-language-source-alist
-    '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash"))
-      (c          . ("https://github.com/tree-sitter/tree-sitter-c"))
-      (cpp        . ("https://github.com/tree-sitter/tree-sitter-cpp"))
-      (python     . ("https://github.com/tree-sitter/tree-sitter-python"))
-      (rust       . ("https://github.com/tree-sitter/tree-sitter-rust")))))
+        '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash"))
+          (c          . ("https://github.com/tree-sitter/tree-sitter-c"))
+          (cpp        . ("https://github.com/tree-sitter/tree-sitter-cpp"))
+          (python     . ("https://github.com/tree-sitter/tree-sitter-python"))
+          (rust       . ("https://github.com/tree-sitter/tree-sitter-rust")))))
+;; 安装 tree-sitter 语法解析器（仅 Emacs 29+）
+(dolist (lang '(c cpp rust python bash))
+  (unless (treesit-language-available-p lang)
+    (treesit-install-language-grammar lang)))
+
 
 (require 'eglot)
 
 (setq eglot-server-programs
       '(((c++-mode c-mode) . ("clangd"))
-        ((rust-mode) . ("rust-analyzer"))))
+        ((rust-mode)       . ("rust-analyzer"))
+        ;;((markdown-mode)   . ("ltex-ls"))
+        ))
 
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
 (add-hook 'rust-mode-hook 'eglot-ensure)
+;;(add-hook 'markdown-mode-hook 'eglot-ensure)
+
+;;(setq eglot-ignored-server-capabilities '(:textDocument/hover))
+;;(setq eglot-timeout 10)  ;; 增加超时时间，单位为秒
+
+;; comment
+(defun my-cpp-line-comments ()
+  "Use // comments instead of /* */ in C/C++."
+  (setq-local comment-start "// "
+              comment-end ""
+              comment-start-skip "//+\\s-*"))
+
+(add-hook 'c-mode-hook #'my-cpp-line-comments)
+(add-hook 'c++-mode-hook #'my-cpp-line-comments)
 
 
 (use-package company :ensure t :defer t
@@ -71,19 +117,74 @@
   :hook (prog-mode . format-all-mode)
   :config
   (setq-default format-all-formatters
-                '(("C" (clang-format)))))
+                '(("C" (clang-format))
+                  ("C++"     (clang-format))
+                  )))
+
 
 (global-set-key (kbd "C-x f") 'format-all-buffer)
 
+(use-package neotree
+  :ensure t
+  :bind (("C-x t" . neotree-toggle))
+  :config
+  (setq neo-theme 'arrow)   ;; 'arrow' 适配终端，不依赖图标
+  (setq neo-smart-open t))  ;; 打开时自动跳到当前文件路径
 
+;; which-key 显示键绑定提示
+(use-package which-key
+  :ensure t
+  :config
+  (which-key-mode))
+;; 窗格切换
+(use-package ace-window
+  :ensure t
+  :bind (("M-o" . ace-window)))
+;; 窗格移动
+(use-package buffer-move
+  :ensure t
+  :bind (("C-c <up>"    . buf-move-up)
+         ("C-c <down>"  . buf-move-down)
+         ("C-c <left>"  . buf-move-left)
+         ("C-c <right>" . buf-move-right)))
+(use-package crux
+  :bind (("C-a" . 'crux-move-beginning-of-line)
+         ("C-c k" . 'crux-smart-kill-line)))
+
+
+
+(defun my-vscode-layout ()
+  "Neotree 左侧，右侧上下分为代码和 eshell，放大代码窗口，焦点回代码。"
+  (interactive)
+  (let ((orig-buffer (current-buffer)))
+    ;; 删除所有窗口，统一布局
+    (delete-other-windows)
+    ;; 打开 Neotree（会自动左右分割）
+    (neotree-show)
+    ;; 选中右侧工作区
+    (select-window (next-window))
+    ;; 上下分割：上是代码，下是 eshell
+    (split-window-below)
+    ;; 当前是上窗口，记录下来
+    (let ((code-win (selected-window)))
+      ;; 选中下窗口并打开 eshell
+      (other-window 1)
+      (eshell)
+      ;; 回到上窗口并还原 buffer
+      (select-window code-win)
+      (switch-to-buffer orig-buffer)
+      ;; 放大代码区窗口，让 eshell 更小（例如放大 10 行）
+      (enlarge-window 10)
+      )))
+
+(global-set-key (kbd "C-c v") #'my-vscode-layout)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(page-break-lines dashboard breadcrumb all-the-icons treesit-ispell treesit-auto tree-sitter neotree format-all flycheck exec-path-from-shell company)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
