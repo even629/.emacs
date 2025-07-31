@@ -2,16 +2,56 @@
 (setq initial-scratch-message nil)
 (menu-bar-mode -1)
 (setq ring-bell-function 'ignore)
+;;显示行号
 (global-display-line-numbers-mode t)
-(defalias 'yes-or-no-p 'y-or-n-p)
-(setq make-backup-files nil)
-(setq create-lockfiles nil)
-(setq-default indent-tabs-mode nil)    ;; 不使用 TAB 字符，使用空格
-(setq-default tab-width 2)             ;; tab 宽度设为 2 空格
+;;在ModeLine显示列号
+(add-hook 'prog-mode-hook 'column-number-mode)
+;;代码的折叠
+(add-hook 'prog-mode-hook 'hs-minor-mode)
+;;会将lambda等符号美化为λ
+(add-hook 'prog-mode-hook 'prettify-symbols-mode)
+;; 自动重载更改的文件
+(global-auto-revert-mode 1)
+;; 不显示系统负载
+(setq display-time-default-load-average nil)
+;; 时间显示设置
+(setq display-time-24hr-format t   ;; 时间使用24小时制
+      display-time-day-and-date t   ;; 时间显示包括日期和具体时间
+      display-time-interval 10   ;; 时间的变化频率
+      display-time-format "%Y-%m-%d %A %H:%M") ;; 显示完整日期
+;; 启用时间显示设置,在minibuffer上面的那个杠上
+(display-time-mode 1)   
+;; 立即强制刷新一次时间
+(display-time-update)
+;; 使用 Fira Code Nerd Font
+(set-face-attribute 'default nil
+                    :font "FiraCode Nerd Font"
+                    :height 120)  ;; 120=12pt，可根据需求调整
 
+(defalias 'yes-or-no-p 'y-or-n-p)
+;;不要创建备份文件
+(setq make-backup-files nil)
+;;不要创建lock文件
+(setq create-lockfiles nil)
+;; 不使用 TAB 字符，使用空格
+(setq-default indent-tabs-mode nil)
+;; tab 宽度设为 2 空格
+(setq-default tab-width 4)             
+;; 当光标移动到边缘时，窗口每次只滚动一行
+(setq scroll-step 1)
+
+
+;;开启可视化换行，自动折行
 (global-visual-line-mode 1)
-(load-theme 'wombat t)
+;; 主题
+;;(load-theme 'wombat t)
+
+;; 括号匹配
 (electric-pair-mode 1)
+
+
+
+(add-hook 'prog-mode-hook 'hs-minor-mode) ;代码的折叠
 
 (global-set-key (kbd "C-/") 'undo-only)
 (global-set-key (kbd "C-?") 'undo-redo)
@@ -49,12 +89,94 @@
 
 (setq use-package-always-ensure t)
 
+;;doom主题
+(use-package doom-themes
+  :ensure t
+  :init
+  :config
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disable
+  
+  ;; 加载主题（例如 doom-one）
+  (load-theme 'doom-tomorrow-night t)
+
+  ;; 启用可选配置
+  ;; 高亮当前行
+  (doom-themes-visual-bell-config)
+  ;; 改善 Org-mode 颜色
+  (doom-themes-org-config))
+
+
+(defun my/kill-scratch-buffer ()
+  "在 Emacs 启动时关闭 *scratch* buffer."
+  (when (get-buffer "*scratch*")
+    (kill-buffer "*scratch*")))
+(add-hook 'emacs-startup-hook #'my/kill-scratch-buffer)
+
+
+(use-package centaur-tabs
+  :ensure t
+  :demand
+  :init
+  :config
+
+  (defun centaur-tabs-hide-tab (x)
+    "自定义隐藏规则：隐藏特殊或无文件 buffer."
+    (let ((name (format "%s" x)))
+      (or
+       ;; 无文件 buffer 一律隐藏
+       (not (buffer-file-name x))
+       ;; 专用窗口
+       (window-dedicated-p (selected-window))
+       ;; 临时 buffer
+       (string-prefix-p "*" name)
+       (string-prefix-p " " name)
+       ;; Magit 非文件 buffer
+       (and (string-prefix-p "magit" name)
+            (not (file-name-extension name))))))
+  
+  (setq centaur-tabs-style "bar"
+        centaur-tabs-set-bar 'over
+        centaur-tabs-modified-marker "*"
+        centaur-tabs-enable-key-bindings nil
+        centaur-tabs-set-icons t
+        centaur-tabs-icon-type 'nerd-icons
+        centaur-tabs-set-close-button nil
+        centaur-tabs-show-new-tab-button nil
+        centaur-tabs-cycle-scope 'tabs)
+  ;;启用插件
+  (centaur-tabs-mode t)
+  :bind
+  ("C-<left>" . centaur-tabs-backward)
+  ("C-<right>" . centaur-tabs-forward))
+
+
 
 (use-package exec-path-from-shell
   :ensure t
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
+
+;; Git工具
+(use-package magit
+  :ensure t
+  :defer t
+  :bind (("C-x g" . magit-status))
+)
+
+
+(use-package doom-modeline
+  :ensure t
+  :after nyan-mode
+  :custom
+  (doom-modeline-buffer-file-name-style 'truncate-all)
+  :init (doom-modeline-mode 1))
+
+(use-package nyan-mode
+  :ensure t
+  :init
+  (nyan-mode 1))
 
 (use-package markdown-mode
   :ensure t
@@ -73,24 +195,59 @@
           (c          . ("https://github.com/tree-sitter/tree-sitter-c"))
           (cpp        . ("https://github.com/tree-sitter/tree-sitter-cpp"))
           (python     . ("https://github.com/tree-sitter/tree-sitter-python"))
-          (rust       . ("https://github.com/tree-sitter/tree-sitter-rust")))))
+          (rust       . ("https://github.com/tree-sitter/tree-sitter-rust"))
+          (toml       . ("https://github.com/tree-sitter/tree-sitter-toml"))
+          (elisp      . ("https://github.com/Wilfred/tree-sitter-elisp"))
+          (cmake      . ("https://github.com/uyha/tree-sitter-cmake"))
+          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
+          (make       . ("https://github.com/alemuller/tree-sitter-make"))
+          (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml"))
+          (json       . ("https://github.com/tree-sitter/tree-sitter-json"))
+          (java       . ("https://github.com/tree-sitter/tree-sitter-java.git"))
+          ))
+
+  ;;没有内置<languate>-mode的需要添加
+  (add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-mode))
+  (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-mode))
+)
+
 ;; 安装 tree-sitter 语法解析器（仅 Emacs 29+）
-(dolist (lang '(c cpp rust python bash))
+(dolist (lang '(bash c cpp python rust toml elisp cmake dockerfile make yaml json java))
   (unless (treesit-language-available-p lang)
     (treesit-install-language-grammar lang)))
+
+;; 优先使用 Tree-sitter mode
+(setq major-mode-remap-alist
+      '((bash-mode        . bash-ts-mode)
+        (c-mode           . c-ts-mode)
+        (c++-mode         . c++-ts-mode)
+        (python-mode      . python-ts-mode)
+        (rust-mode        . rust-ts-mode)
+        (conf-toml-mode   . toml-ts-mode)
+        (elisp-mode  . elisp-ts-mode)
+        (cmake-mode       . cmake-ts-mode)
+        (dockerfile-mode  . dockerfile-ts-mode)
+        (json-mode        . json-ts-mode)
+        (java-mode        . java-ts-mode)
+        (yaml-mode        . yaml-ts-mode)
+        (makefile-mode    . make-ts-mode))
+      )
 
 
 (require 'eglot)
 
 (setq eglot-server-programs
-      '(((c++-mode c-mode) . ("clangd"))
-        ((rust-mode)       . ("rust-analyzer"))
+      '(((c++-mode c-mode c++-ts-mode c-ts-mode) . ("clangd"))
+        ((rust-mode rust-ts-mode)       . ("rust-analyzer"))
         ;;((markdown-mode)   . ("ltex-ls"))
         ))
-
+;;自动打开eglot
 (add-hook 'c-mode-hook 'eglot-ensure)
+(add-hook 'c-ts-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
+(add-hook 'c++-ts-mode-hook 'eglot-ensure)
 (add-hook 'rust-mode-hook 'eglot-ensure)
+(add-hook 'rust-ts-mode-hook 'eglot-ensure)
 ;;(add-hook 'markdown-mode-hook 'eglot-ensure)
 
 ;;(setq eglot-ignored-server-capabilities '(:textDocument/hover))
@@ -105,6 +262,10 @@
 
 (add-hook 'c-mode-hook #'my-cpp-line-comments)
 (add-hook 'c++-mode-hook #'my-cpp-line-comments)
+(add-hook 'c-ts-mode-hook #'my-cpp-line-comments)
+(add-hook 'c++-ts-mode-hook #'my-cpp-line-comments)
+(add-hook 'rust-mode-hook #'my-cpp-line-comments)
+(add-hook 'rust-ts-mode-hook #'my-cpp-line-comments)
 
 
 (use-package company :ensure t :defer t
@@ -119,6 +280,7 @@
   (setq-default format-all-formatters
                 '(("C" (clang-format))
                   ("C++"     (clang-format))
+                  ("rust" (rustfmt))
                   )))
 
 
@@ -128,8 +290,11 @@
   :ensure t
   :bind (("C-x t" . neotree-toggle))
   :config
-  (setq neo-theme 'arrow)   ;; 'arrow' 适配终端，不依赖图标
-  (setq neo-smart-open t))  ;; 打开时自动跳到当前文件路径
+  (setq neo-theme 'arrow)       ;; 'arrow' 适配终端，不依赖图标
+  (setq neo-smart-open t)       ;;  打开时自动跳到当前文件路径
+  (setq neo-show-hidden-files t);;  显示隐藏文件
+)  
+
 
 ;; which-key 显示键绑定提示
 (use-package which-key
@@ -147,37 +312,46 @@
          ("C-c <down>"  . buf-move-down)
          ("C-c <left>"  . buf-move-left)
          ("C-c <right>" . buf-move-right)))
+;; 智能按键C-a C-c k
 (use-package crux
   :bind (("C-a" . 'crux-move-beginning-of-line)
          ("C-c k" . 'crux-smart-kill-line)))
+;; 项目识别,通过创建.projectile文件识别为一个项目
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :config
+  (setq projectile-project-search-path '("~/repository"))
+  (setq projectile-completion-system 'auto))  ;; 或 ivy / helm / default
 
+;; (defun my-vscode-layout ()
+;;   "Neotree 左侧，右侧上下分为代码和 eshell，放大代码窗口，焦点回代码。"
+;;   (interactive)
+;;   (let ((orig-buffer (current-buffer)))
+;;     ;; 删除所有窗口，统一布局
+;;     (delete-other-windows)
+;;     ;; 打开 Neotree（会自动左右分割）
+;;     (neotree-show)
+;;     ;; 选中右侧工作区
+;;     (select-window (next-window))
+;;     ;; 上下分割：上是代码，下是 eshell
+;;     (split-window-below)
+;;     ;; 当前是上窗口，记录下来
+;;     (let ((code-win (selected-window)))
+;;       ;; 选中下窗口并打开 eshell
+;;       (other-window 1)
+;;       (eshell)
+;;       ;; 回到上窗口并还原 buffer
+;;       (select-window code-win)
+;;       (switch-to-buffer orig-buffer)
+;;       ;; 放大代码区窗口，让 eshell 更小（例如放大 10 行）
+;;       (enlarge-window 10)
+;;       )))
 
-
-(defun my-vscode-layout ()
-  "Neotree 左侧，右侧上下分为代码和 eshell，放大代码窗口，焦点回代码。"
-  (interactive)
-  (let ((orig-buffer (current-buffer)))
-    ;; 删除所有窗口，统一布局
-    (delete-other-windows)
-    ;; 打开 Neotree（会自动左右分割）
-    (neotree-show)
-    ;; 选中右侧工作区
-    (select-window (next-window))
-    ;; 上下分割：上是代码，下是 eshell
-    (split-window-below)
-    ;; 当前是上窗口，记录下来
-    (let ((code-win (selected-window)))
-      ;; 选中下窗口并打开 eshell
-      (other-window 1)
-      (eshell)
-      ;; 回到上窗口并还原 buffer
-      (select-window code-win)
-      (switch-to-buffer orig-buffer)
-      ;; 放大代码区窗口，让 eshell 更小（例如放大 10 行）
-      (enlarge-window 10)
-      )))
-
-(global-set-key (kbd "C-c v") #'my-vscode-layout)
+;; (global-set-key (kbd "C-c v") #'my-vscode-layout)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
