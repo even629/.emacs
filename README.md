@@ -1,5 +1,12 @@
 # .emacs
-my emacs config
+environment: WSL2 + Windows Terminal
+
+windows config
+```
+# for clipboard
+https://github.com/equalsraf/win32yank
+
+```
 
 for Ubuntu
 ```bash
@@ -8,11 +15,8 @@ sudo apt-get update
 
 # emacs-nox
 sudo apt-get install emacs-nox
-# emacs
-sudo apt-get install emacs
 
-
-sudo apt-get install clang clangd clang-format
+sudo apt-get install clang clangd clang-format 
 
 ```
 
@@ -30,5 +34,7 @@ ln -s /usr/bin/rust-analyzer ~/.cargo/bin/rust-analyzer
 cargo install --git https://github.com/bergercookie/asm-lsp asm-lsp
 
 # 创建配置文件，也可以用默认配置
+
 asm-lsp gen-config
 ```
+
