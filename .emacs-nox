@@ -12,6 +12,7 @@
  window-combination-resize t                      ;; 新窗口平均其他左右窗口
  x-stretch-cursor t                               ;; 将光标拉伸到字形宽度
  )
+
 (setq ring-bell-function 'ignore
       initial-scratch-message nil
       inhibit-startup-message t
@@ -67,16 +68,10 @@
 ;; 当光标移动到边缘时，窗口每次只滚动一行
 (setq scroll-step 1)
 
-
 ;;开启可视化换行，自动折行
 (global-visual-line-mode 1)
-;; 主题
-;;(load-theme 'wombat t)
-
 ;; 括号匹配
 (electric-pair-mode 1)
-
-
 
 (add-hook 'prog-mode-hook 'hs-minor-mode) ;代码的折叠
 
@@ -110,11 +105,11 @@
 (setenv "LC_ALL" "en_US.UTF-8")
 (setenv "LANG" "en_US.UTF-8")  
 
-
 (setq find-file-encoding 'auto)
 (setq-default coding-system-for-read 'utf-8)
 (setq-default coding-system-for-write 'utf-8)
 
+;; 设置镜像源
 ;;(setq package-archives
 ;;      '(("melpa" . "https://melpa.org/packages/")
 ;;        ("gnu"   . "https://elpa.gnu.org/packages/")))
@@ -150,7 +145,7 @@
     (kill-buffer "*scratch*")))
 (add-hook 'emacs-startup-hook #'my/kill-scratch-buffer)
 
-
+;; tab栏显示buffer
 (use-package centaur-tabs
   :ensure t
   :demand
@@ -174,7 +169,6 @@
   
   (setq centaur-tabs-style "bar"
         centaur-tabs-set-bar 'over
-        centaur-tabs-modified-marker "*"
         centaur-tabs-enable-key-bindings nil
         centaur-tabs-set-icons t
         centaur-tabs-icon-type 'nerd-icons
@@ -186,6 +180,7 @@
   :bind
   ("C-<left>" . centaur-tabs-backward)
   ("C-<right>" . centaur-tabs-forward))
+
 ;; modeline主题
 (use-package doom-modeline
   :ensure t
@@ -193,23 +188,36 @@
   :custom
   (doom-modeline-buffer-file-name-style 'truncate-all)
   :init (doom-modeline-mode 1))
+
 ;;显示进度条
 (use-package nyan-mode
   :ensure t
   :init
   (nyan-mode 1))
-;;预览要跳转的行
-(use-package goto-line-preview :ensure t
-  :bind (("M-g g" . goto-line-preview)))
 
+;;文件导航栏
 (use-package neotree
   :ensure t
   :bind (("C-x t" . neotree-toggle))
   :config
-  (setq neo-theme 'arrow)
+  (setq neo-theme 'nerd-icons)
   (setq neo-smart-open t)       ;;  打开时自动跳到当前文件路径
   (setq neo-show-hidden-files t);;  显示隐藏文件
-)  
+  )
+
+;; (use-package nerd-icons
+;;   :custom
+;;   ;; The Nerd Font you want to use in GUI
+;;   ;; "Symbols Nerd Font Mono" is the default and is recommended
+;;   ;; but you can use any other Nerd Font if you want
+;;    (nerd-icons-font-family "FiraCode Nerd Font")
+;;   )
+
+
+;;预览要跳转的行
+(use-package goto-line-preview :ensure t
+  :bind (("M-g g" . goto-line-preview)))
+
 
 ;;代码整行上移下移
 (use-package move-dup
@@ -218,7 +226,6 @@
          ("M-n"   . move-dup-move-lines-down)
      ;;    ("C-M-n" . move-dup-duplicate-down)
          ))
-
 
 (use-package exec-path-from-shell
   :ensure t
@@ -232,7 +239,7 @@
   :defer t
   :bind (("C-x g" . magit-log-all))
 )
-
+;; 语法解析
 (use-package tree-sitter
   :when (and (fboundp 'treesit-available-p)
              (treesit-available-p))
@@ -256,7 +263,7 @@
           ))
 
   ;;没有内置<languate>-mode的需要添加
-  (add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-mode))
+  (add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-ts-mode))
   (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-mode))
 )
 
@@ -279,42 +286,44 @@
         (json-mode        . json-ts-mode)
         (java-mode        . java-ts-mode)
         (yaml-mode        . yaml-ts-mode)
-        (makefile-mode    . make-ts-mode))
-      )
+        (makefile-mode    . makefile-ts-mode)
+        ))
+;; 语法检查
+;; (use-package flycheck
+;;   :ensure t
+;;   :config
+;;   (setq truncate-lines nil) ; 如果单行信息很长会自动换行
+;;   :hook
+;;   (prog-mode . flycheck-mode))
 
 
+;; lsp语言服务器配置
 (require 'eglot)
 
 (setq eglot-server-programs
-      '(((c++-mode c-mode c++-ts-mode c-ts-mode) . ("clangd"))
-        ((rust-mode rust-ts-mode)       . ("rust-analyzer"))
-        ((asm-mode nasm-mode) . ("asm-lsp"))
-        ;;((markdown-mode)   . ("ltex-ls"))
+      '(((c++-mode c-mode c++-ts-mode c-ts-mode)     . ("clangd"))
+        ((rust-mode rust-ts-mode)                    . ("rust-analyzer"))
+        ((asm-mode nasm-mode)                        . ("asm-lsp"))
+        ((python-mode python-ts-mode)                . ("pyright-langserver" "--stdio"))
+        ((java-mode java-ts-mode)                    . ("jdtls"))
+        ((bash-mode bash-ts-mode sh-mode sh-ts-mode) . ("bash-language-server" "start"))
         ))
 
 ;; eglot快捷键
-
 (global-set-key (kbd "M-,") 'xref-find-definitions)  ;; 跳转到定义
 (global-set-key (kbd "M-.") 'xref-pop-marker-stack)  ;; 跳回
 (global-set-key (kbd "M-?") 'xref-find-references)   ;; 查找引用
 
-
-
 ;;自动打开eglot
-(add-hook 'c-mode-hook 'eglot-ensure)
-(add-hook 'c-ts-mode-hook 'eglot-ensure)
-(add-hook 'c++-mode-hook 'eglot-ensure)
-(add-hook 'c++-ts-mode-hook 'eglot-ensure)
-(add-hook 'rust-mode-hook 'eglot-ensure)
-(add-hook 'rust-ts-mode-hook 'eglot-ensure)
-(add-hook 'asm-mode-hook 'eglot-ensure)
-(add-hook 'nasm-mode-hook 'eglot-ensure)
-
-
-;;(add-hook 'markdown-mode-hook 'eglot-ensure)
-
-;;(setq eglot-ignored-server-capabilities '(:textDocument/hover))
-;;(setq eglot-timeout 10)  ;; 增加超时时间，单位为秒
+(dolist (hook '(c-mode-hook c-ts-mode-hook
+                c++-mode-hook c++-ts-mode-hook
+                rust-mode-hook rust-ts-mode-hook
+                asm-mode-hook nasm-mode-hook
+                python-mode-hook python-ts-mode-hook
+                java-mode-hook java-ts-mode-hook
+                bash-mode-hook bash-ts-mode-hook
+                sh-mode-hook sh-ts-mode-hook))
+  (add-hook hook 'eglot-ensure))
 
 ;; comment
 (defun my-cpp-line-comments ()
@@ -323,18 +332,15 @@
               comment-end ""
               comment-start-skip "//+\\s-*"))
 
-(add-hook 'c-mode-hook #'my-cpp-line-comments)
-(add-hook 'c++-mode-hook #'my-cpp-line-comments)
-(add-hook 'c-ts-mode-hook #'my-cpp-line-comments)
-(add-hook 'c++-ts-mode-hook #'my-cpp-line-comments)
-(add-hook 'rust-mode-hook #'my-cpp-line-comments)
-(add-hook 'rust-ts-mode-hook #'my-cpp-line-comments)
+(dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook
+                rust-mode-hook rust-ts-mode-hook python-mode-hook python-ts-mode-hook java-mode-hook java-ts-mode-hook))
+  (add-hook hook #'my-cpp-line-comments))
 
-
+;; 自动补全
 (use-package company :ensure t :defer t
   :hook (after-init . global-company-mode))
 
-
+;; 格式化
 (use-package format-all
   :ensure t
   :commands format-all-mode
@@ -346,9 +352,7 @@
                   ("rust" (rustfmt))
                   )))
 
-
 (global-set-key (kbd "C-x f") 'format-all-buffer)
-
 
 
 ;; which-key 显示键绑定提示

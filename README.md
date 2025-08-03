@@ -6,6 +6,7 @@ windows config
 # for clipboard
 https://github.com/equalsraf/win32yank
 
+# Download FiraCode Nerd Font
 ```
 
 for Ubuntu
@@ -24,8 +25,14 @@ for Arch Linux
 
 ```bash
 pacman -Sy emacs-nox
+pacman -Sy clang clangd clang-format rust-analyzer nvm
+yay -S jdtls
 
-pacman -Sy clang clangd clang-format rust-analyzer
+source /usr/share/nvm/init-nvm.sh
+nvm list-remote
+nvm install v20.19.4
+nvm use v20.19.4
+npm i -g pyright bash-language-server
 
 rm ~/.cargo/bin/rust-analyzer
 
@@ -36,5 +43,11 @@ cargo install --git https://github.com/bergercookie/asm-lsp asm-lsp
 # 创建配置文件，也可以用默认配置
 
 asm-lsp gen-config
+
+sudo pacman -S exa
+
+echo 'alias ll="ls -alF"' >> ~/.bashrc
+echo 'alias ls="exa --icons"' >> ~/.bashrc
+source ~/.bashrc
 ```
 
