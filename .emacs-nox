@@ -1,3 +1,4 @@
+;;不显示menu-bar
 (menu-bar-mode -1)
 ;;显示行号
 (global-display-line-numbers-mode t)
@@ -7,22 +8,62 @@
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 ;; 自动重载更改的文件
 (global-auto-revert-mode 1)
+;;开启可视化换行，自动折行
+(global-visual-line-mode 1)
+;; 括号匹配
+(electric-pair-mode 1)
+
+;; 中文显示
+(set-language-environment "utf-8")
+(set-buffer-file-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-clipboard-coding-system 'utf-8)
+(modify-coding-system-alist 'process "*" 'utf-8)
+(prefer-coding-system 'utf-8)
+(setq-default pathname-coding-system 'utf-8)
+(setq default-process-coding-system '(utf-8 . utf-8)
+      locale-coding-system 'utf-8
+      file-name-coding-system 'utf-8
+      default-buffer-file-coding-system 'utf-8
+      slime-net-coding-system 'utf-8-unix
+      )
+
+
+(setenv "LC_CTYPE" "UTF-8")
+(setenv "LC_ALL" "en_US.UTF-8")
+(setenv "LANG" "en_US.UTF-8")
+
+(setq find-file-encoding 'auto)
+(setq-default coding-system-for-read 'utf-8)
+(setq-default coding-system-for-write 'utf-8)
+
 ;; 基本设置
-(setq-default
- window-combination-resize t                      ;; 新窗口平均其他左右窗口
- x-stretch-cursor t                               ;; 将光标拉伸到字形宽度
- )
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+(setq-default window-combination-resize t                      ;; 新窗口平均其他左右窗口
+              x-stretch-cursor t                               ;; 将光标拉伸到字形宽度
+              indent-tabs-mode nil                             ;; 不使用 TAB 字符，使用空格
+              tab-width 2                                      ;; tab 宽度设为 2 空格
+              )
 
 (setq ring-bell-function 'ignore
       initial-scratch-message nil
       inhibit-startup-message t
       auto-save-file-name-transforms '((".*" "~/.emacs.d/data/backup/" t)) ;; Write auto-save files to a separate directory
       backup-directory-alist '(("." . "~/.emacs.d/data/backup/"))          ;; Write backup files to a separate directory
-      create-lockfiles nil                                                 ;; Disable lockfiles as I use only one Emacs instance
+      create-lockfiles nil                                                 ;; Disable lockfiles
       scroll-conservatively 10000 ;;防止页面滚动时跳动
-      undo-limit 80000000           ;; 提升撤销限制
+      scroll-step 1               ;; 当光标移动到边缘时，窗口每次只滚动一行
+      undo-limit 80000000         ;; 提升撤销限制
       display-time-default-load-average nil ;; 不显示系统负载
+      electric-indent-mode 1    ;; 自动缩进
       )
+
+
+
 
 ;; 时间显示设置
 ;; (setq display-time-24hr-format t   ;; 时间使用24小时制
@@ -30,7 +71,7 @@
 ;;       display-time-interval 10   ;; 时间的变化频率
 ;;       display-time-format "%Y-%m-%d %A %H:%M") ;; 显示完整日期
 ;; ;; 启用时间显示设置,在minibuffer上面的那个杠上
-;; (display-time-mode 1)   
+;; (display-time-mode 1)
 ;; ;; 立即强制刷新一次时间
 ;; (display-time-update)
 
@@ -38,6 +79,7 @@
 (set-face-attribute 'default nil
                     :font "FiraCode Nerd Font"
                     :height 120)  ;; 120=12pt，可根据需求调整
+
 
 ;; wsl与windos共享剪切版
 (defun my/clipboard-to-windows (text &optional push)
@@ -56,61 +98,8 @@
 
 
 
-(defalias 'yes-or-no-p 'y-or-n-p)
-;;不要创建备份文件
-(setq make-backup-files nil)
-;;不要创建lock文件
-(setq create-lockfiles nil)
-;; 不使用 TAB 字符，使用空格
-(setq-default indent-tabs-mode nil)
-;; tab 宽度设为 2 空格
-(setq-default tab-width 4)             
-;; 当光标移动到边缘时，窗口每次只滚动一行
-(setq scroll-step 1)
-
-;;开启可视化换行，自动折行
-(global-visual-line-mode 1)
-;; 括号匹配
-(electric-pair-mode 1)
-
-(add-hook 'prog-mode-hook 'hs-minor-mode) ;代码的折叠
-
-(global-set-key (kbd "C-/") 'undo-only)
-(global-set-key (kbd "C-?") 'undo-redo)
-;; 快捷键绑定：使用调整窗口大小
-(global-set-key (kbd "M-<up>")    'enlarge-window)
-(global-set-key (kbd "M-<down>")  'shrink-window)
-(global-set-key (kbd "M-<left>")  'shrink-window-horizontally)
-(global-set-key (kbd "M-<right>") 'enlarge-window-horizontally)
-
-;; 中文显示
-(set-language-environment "utf-8")
-(set-buffer-file-coding-system 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-(set-selection-coding-system 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-clipboard-coding-system 'utf-8)
-(modify-coding-system-alist 'process "*" 'utf-8)
-(prefer-coding-system 'utf-8)
-(setq-default pathname-coding-system 'utf-8)
-(setq
- default-process-coding-system '(utf-8 . utf-8)
- locale-coding-system 'utf-8
- file-name-coding-system 'utf-8
- default-buffer-file-coding-system 'utf-8
- slime-net-coding-system 'utf-8-unix)
-
-(setenv "LC_CTYPE" "UTF-8")
-(setenv "LC_ALL" "en_US.UTF-8")
-(setenv "LANG" "en_US.UTF-8")  
-
-(setq find-file-encoding 'auto)
-(setq-default coding-system-for-read 'utf-8)
-(setq-default coding-system-for-write 'utf-8)
-
-;; 设置镜像源
-;;(setq package-archives
+;;设置镜像源
+;; (setq package-archives
 ;;      '(("melpa" . "https://melpa.org/packages/")
 ;;        ("gnu"   . "https://elpa.gnu.org/packages/")))
 (setq package-archives '(("gnu"    . "https://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -145,19 +134,24 @@
     (kill-buffer "*scratch*")))
 (add-hook 'emacs-startup-hook #'my/kill-scratch-buffer)
 
+;;在执行操作（如撤销、替换、复制）时提供视觉反馈。
+(use-package volatile-highlights
+  :ensure t
+  :init
+  (volatile-highlights-mode t))  ;; 启用 volatile-highlights
+
 ;; tab栏显示buffer
 (use-package centaur-tabs
   :ensure t
   :demand
   :init
   :config
-
   (defun centaur-tabs-hide-tab (x)
-    "自定义隐藏规则：隐藏特殊或无文件 buffer."
+    "自定义隐藏规则：隐藏特殊或无文件 buffer，但保留 vterm buffer."
     (let ((name (format "%s" x)))
       (or
-       ;; 无文件 buffer 一律隐藏
-       (not (buffer-file-name x))
+       ;; 隐藏无文件 buffer，但保留 *vterm* buffer
+       (and (not (buffer-file-name x)))
        ;; 专用窗口
        (window-dedicated-p (selected-window))
        ;; 临时 buffer
@@ -166,7 +160,7 @@
        ;; Magit 非文件 buffer
        (and (string-prefix-p "magit" name)
             (not (file-name-extension name))))))
-  
+
   (setq centaur-tabs-style "bar"
         centaur-tabs-set-bar 'over
         centaur-tabs-enable-key-bindings nil
@@ -180,6 +174,15 @@
   :bind
   ("C-<left>" . centaur-tabs-backward)
   ("C-<right>" . centaur-tabs-forward))
+
+;; 虚拟终端
+(use-package vterm
+  :ensure t)
+;; a light that follows your cursor
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1))
 
 ;; modeline主题
 (use-package doom-modeline
@@ -198,20 +201,72 @@
 ;;文件导航栏
 (use-package neotree
   :ensure t
-  :bind (("C-x t" . neotree-toggle))
+  :bind (("<f8>" . neotree-toggle))
   :config
   (setq neo-theme 'nerd-icons)
   (setq neo-smart-open t)       ;;  打开时自动跳到当前文件路径
   (setq neo-show-hidden-files t);;  显示隐藏文件
   )
+;; neotree buffer 中强制截断长行
+(add-hook 'neo-after-create-hook
+          (lambda (_)
+            ;; 不换行，禁用 visual-line（你全局开了的话）
+            (visual-line-mode -1)
+            (setq-local truncate-lines t)
 
-;; (use-package nerd-icons
-;;   :custom
-;;   ;; The Nerd Font you want to use in GUI
-;;   ;; "Symbols Nerd Font Mono" is the default and is recommended
-;;   ;; but you can use any other Nerd Font if you want
-;;    (nerd-icons-font-family "FiraCode Nerd Font")
-;;   )
+            ;; 用 “…” 代替右侧的 $ 截断标记
+            (let ((tbl (or buffer-display-table (make-display-table))))
+              (set-display-table-slot tbl 'truncation (make-glyph-code ?…))
+              (setq-local buffer-display-table tbl))))
+;; 允许 neotree 窗口宽度可调整
+(with-eval-after-load 'neotree
+  (setq neo-window-fixed-size nil))
+
+(use-package nerd-icons
+  :custom
+  ;; The Nerd Font you want to use in GUI
+  ;; "Symbols Nerd Font Mono" is the default and is recommended
+  ;; but you can use any other Nerd Font if you want
+  (nerd-icons-font-family "FiraCode Nerd Font")
+  )
+
+;; use-package with package.el:
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  ;; recentf mode 必须开启
+  (recentf-mode 1)
+  ;; 快捷键
+  (setq dashboard-navigation-cycle t
+        dashboard-show-shortcuts nil
+        dashboard-set-footer     nil
+        dashboard-center-content t;; Content is not centered by default. To center, set
+        dashboard-vertically-center-content t;; vertically center content
+        dashboard-items '((recents   . 5)   ;; 显示的 widget: 最近文件、书签、项目、agenda
+                          (projects  . 5)
+                          (agenda    . 5))
+        dashboard-projects-backend 'projectile ;; 设置项目列表使用 Projectile
+        dashboard-display-icons-p t        ;; 开启显示图标
+        dashboard-icon-type 'nerd-icons    ;; 使用 nerd-icons
+        dashboard-set-file-icons t         ;; 文件图标
+        dashboard-set-heading-icons nil))      ;; 标题图标显示
+
+
+;; enhancement for amx
+(use-package amx
+  :ensure t
+  :init (amx-mode))
+
+;; 保存最近打开的buffers到disk
+(use-package perspective
+  :custom
+  (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
+  (persp-state-default-file "~/.emacs.d/persp-state.el") ;; 默认保存位置
+  :init
+  (persp-mode))
+;; 退出 Emacs 时自动保存 session
+(add-hook 'kill-emacs-hook #'persp-state-save)
 
 
 ;;预览要跳转的行
@@ -221,10 +276,10 @@
 
 ;;代码整行上移下移
 (use-package move-dup
-  :bind (("M-p"   . move-dup-move-lines-up)
-     ;;    ("C-M-p" . move-dup-duplicate-up)
-         ("M-n"   . move-dup-move-lines-down)
-     ;;    ("C-M-n" . move-dup-duplicate-down)
+  :bind (("C-M-p"   . move-dup-move-lines-up)
+         ;;    ("C-M-p" . move-dup-duplicate-up)
+         ("C-M-n"   . move-dup-move-lines-down)
+         ;;    ("C-M-n" . move-dup-duplicate-down)
          ))
 
 (use-package exec-path-from-shell
@@ -233,12 +288,23 @@
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
+;; 保证在编程模式下缩进是主要行为
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (setq-local indent-line-function #'indent-relative)))
 ;; Git工具
 (use-package magit
   :ensure t
   :defer t
   :bind (("C-x g" . magit-log-all))
-)
+  )
+
+(use-package markdown-mode
+  :ensure t
+  :mode ("\\.md\\'" . markdown-mode)
+  :init (setq markdown-command "pandoc"))
+
+
 ;; 语法解析
 (use-package tree-sitter
   :when (and (fboundp 'treesit-available-p)
@@ -259,16 +325,16 @@
           (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml"))
           (json       . ("https://github.com/tree-sitter/tree-sitter-json"))
           (java       . ("https://github.com/tree-sitter/tree-sitter-java.git"))
-          (markdown   . ("https://github.com/MDeiml/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
+          ;;(markdown   . ("https://github.com/MDeiml/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
           ))
 
   ;;没有内置<languate>-mode的需要添加
   (add-to-list 'auto-mode-alist '("\\.y[a]?ml\\'" . yaml-ts-mode))
   (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\(?:\\..*\\)?\\|\\.[Dd]ockerfile\\)\\'" . dockerfile-mode))
-)
+  )
 
 ;; 安装 tree-sitter 语法解析器（仅 Emacs 29+）
-(dolist (lang '(bash c cpp python rust toml elisp cmake dockerfile make yaml json java markdown))
+(dolist (lang '(bash c cpp python rust toml elisp cmake dockerfile make yaml json java))
   (unless (treesit-language-available-p lang)
     (treesit-install-language-grammar lang)))
 
@@ -280,7 +346,7 @@
         (python-mode      . python-ts-mode)
         (rust-mode        . rust-ts-mode)
         (conf-toml-mode   . toml-ts-mode)
-        (elisp-mode  . elisp-ts-mode)
+        (elisp-mode       . elisp-ts-mode)
         (cmake-mode       . cmake-ts-mode)
         (dockerfile-mode  . dockerfile-ts-mode)
         (json-mode        . json-ts-mode)
@@ -288,14 +354,6 @@
         (yaml-mode        . yaml-ts-mode)
         (makefile-mode    . makefile-ts-mode)
         ))
-;; 语法检查
-;; (use-package flycheck
-;;   :ensure t
-;;   :config
-;;   (setq truncate-lines nil) ; 如果单行信息很长会自动换行
-;;   :hook
-;;   (prog-mode . flycheck-mode))
-
 
 ;; lsp语言服务器配置
 (require 'eglot)
@@ -307,23 +365,37 @@
         ((python-mode python-ts-mode)                . ("pyright-langserver" "--stdio"))
         ((java-mode java-ts-mode)                    . ("jdtls"))
         ((bash-mode bash-ts-mode sh-mode sh-ts-mode) . ("bash-language-server" "start"))
+        ((markdown-mode)                             . ("marksman"))
+        ((latex-mode LaTeX-mode)                     . ("texlab"))
         ))
+;;关闭lsp自动格式化
+(setq eglot-ignored-server-capabilities '(:documentFormattingProvider))
+;;自动打开eglot
+(dolist (hook '(c-mode-hook c-ts-mode-hook
+                            c++-mode-hook c++-ts-mode-hook
+                            rust-mode-hook rust-ts-mode-hook
+                            asm-mode-hook nasm-mode-hook
+                            python-mode-hook python-ts-mode-hook
+                            java-mode-hook java-ts-mode-hook
+                            markdown-mode-hook
+                            bash-mode-hook bash-ts-mode-hook
+                            sh-mode-hook sh-ts-mode-hook
+                            latex-mode-hook LaTeX-mode-hook
+                            ))
+  (add-hook hook 'eglot-ensure))
+
+(global-set-key (kbd "M-n") #'flymake-goto-next-error)
+(global-set-key (kbd "M-p") #'flymake-goto-prev-error)
 
 ;; eglot快捷键
 (global-set-key (kbd "M-,") 'xref-find-definitions)  ;; 跳转到定义
 (global-set-key (kbd "M-.") 'xref-pop-marker-stack)  ;; 跳回
 (global-set-key (kbd "M-?") 'xref-find-references)   ;; 查找引用
 
-;;自动打开eglot
-(dolist (hook '(c-mode-hook c-ts-mode-hook
-                c++-mode-hook c++-ts-mode-hook
-                rust-mode-hook rust-ts-mode-hook
-                asm-mode-hook nasm-mode-hook
-                python-mode-hook python-ts-mode-hook
-                java-mode-hook java-ts-mode-hook
-                bash-mode-hook bash-ts-mode-hook
-                sh-mode-hook sh-ts-mode-hook))
-  (add-hook hook 'eglot-ensure))
+
+;; 显示诊断信息（自动 hover 显示错误、警告等）
+(setq eldoc-idle-delay 0.2)  ;; 光标停留 0.2 秒后显示提示
+
 
 ;; comment
 (defun my-cpp-line-comments ()
@@ -333,12 +405,39 @@
               comment-start-skip "//+\\s-*"))
 
 (dolist (hook '(c-mode-hook c++-mode-hook c-ts-mode-hook c++-ts-mode-hook
-                rust-mode-hook rust-ts-mode-hook python-mode-hook python-ts-mode-hook java-mode-hook java-ts-mode-hook))
+                            rust-mode-hook rust-ts-mode-hook python-mode-hook python-ts-mode-hook java-mode-hook java-ts-mode-hook))
   (add-hook hook #'my-cpp-line-comments))
 
 ;; 自动补全
 (use-package company :ensure t :defer t
   :hook (after-init . global-company-mode))
+;; company-quickhelp 配置
+(use-package company-quickhelp
+  :ensure t
+  :after company
+  :config
+  ;; 启用 company-quickhelp
+  (company-quickhelp-mode 1)
+  ;; 设置弹出延迟（秒），比如 0.5 秒
+  (setq company-quickhelp-delay 0.5))
+
+(use-package flx
+  :ensure t)
+(use-package company-fuzzy
+  :ensure t
+  :after company
+  :hook (company-mode . company-fuzzy-mode)
+  :init
+  (setq company-fuzzy-sorting-backend 'flx         ;; 选择模糊匹配算法
+        company-fuzzy-reset-selection t           ;; 选中候选时重置到第一个
+        company-fuzzy-prefix-on-top nil           ;; 是否把 prefix 值置顶
+        company-fuzzy-trigger-symbols '("." "->" "<" "\"" "'" "@")  ;; 触发符号
+        company-fuzzy-show-annotation t           ;; 显示注释
+        company-fuzzy-passthrough-backends '(company-capf)) ;; 排除部分 backend
+  :config
+  ;; 全局启用
+  (global-company-fuzzy-mode 1))
+
 
 ;; 格式化
 (use-package format-all
@@ -346,6 +445,8 @@
   :commands format-all-mode
   :hook (prog-mode . format-all-mode)
   :config
+  ;; 不在保存时自动格式化
+  (remove-hook 'before-save-hook 'format-all-buffer t)
   (setq-default format-all-formatters
                 '(("C" (clang-format))
                   ("C++"     (clang-format))
@@ -353,6 +454,23 @@
                   )))
 
 (global-set-key (kbd "C-x f") 'format-all-buffer)
+
+;; 代码模板
+;; YASnippet 配置
+(use-package yasnippet
+  :ensure t
+  :hook (prog-mode . yas-minor-mode)  ;; 只在编程模式启用
+  :config
+  ;; 启动时加载所有 snippet
+  (yas-reload-all)
+  ;; 设置 snippet 目录
+  (setq yas-snippet-dirs
+        '("~/.emacs.d/snippets"        ;; 个人片段
+          "~/.emacs.d/elpa/yasnippet-snippets-*/snippets"))) ;; 社区合集
+
+(use-package yasnippet-snippets
+  :ensure t
+  :after yasnippet)
 
 
 ;; which-key 显示键绑定提示
@@ -384,33 +502,68 @@
   ("C-c p" . projectile-command-map)
   :config
   (setq projectile-project-search-path '("~/repository"))
-  (setq projectile-completion-system 'auto))  ;; 或 ivy / helm / default
+  (setq projectile-completion-system 'auto) ;; 或 ivy / helm / default
+  (use-package rg
+    :ensure t))
 
-;; (defun my-vscode-layout ()
-;;   "Neotree 左侧，右侧上下分为代码和 eshell，放大代码窗口，焦点回代码。"
-;;   (interactive)
-;;   (let ((orig-buffer (current-buffer)))
-;;     ;; 删除所有窗口，统一布局
-;;     (delete-other-windows)
-;;     ;; 打开 Neotree（会自动左右分割）
-;;     (neotree-show)
-;;     ;; 选中右侧工作区
-;;     (select-window (next-window))
-;;     ;; 上下分割：上是代码，下是 eshell
-;;     (split-window-below)
-;;     ;; 当前是上窗口，记录下来
-;;     (let ((code-win (selected-window)))
-;;       ;; 选中下窗口并打开 eshell
-;;       (other-window 1)
-;;       (eshell)
-;;       ;; 回到上窗口并还原 buffer
-;;       (select-window code-win)
-;;       (switch-to-buffer orig-buffer)
-;;       ;; 放大代码区窗口，让 eshell 更小（例如放大 10 行）
-;;       (enlarge-window 10)
-;;       )))
+(defun my-vscode-layout ()
+  "Neotree 左侧，右侧上下分为代码和 vterm，放大代码窗口，焦点回代码。"
+  (interactive)
+  (let ((orig-buffer (current-buffer)))
+    ;; 删除所有窗口，统一布局
+    (delete-other-windows)
+    ;; 打开 Neotree（会自动左右分割）
+    (neotree-show)
+    ;; 选中右侧工作区
+    (select-window (next-window))
+    ;; 上下分割：上是代码，下是 eshell
+    (split-window-below)
+    ;; 当前是上窗口，记录下来
+    (let ((code-win (selected-window)))
+      ;; 选中下窗口并打开 eshell
+      (other-window 1)
+      (vterm)
+      ;; 回到上窗口并还原 buffer
+      (select-window code-win)
+      (switch-to-buffer orig-buffer)
+      ;; 放大代码区窗口，让 eshell 更小（例如放大 10 行）
+      (enlarge-window 10)
+      )))
 
-;; (global-set-key (kbd "C-c v") #'my-vscode-layout)
+(global-set-key (kbd "C-c v") #'my-vscode-layout)
+
+;; 快捷键定义必须放在后面否则容易被其他插件覆盖
+;;enhancement for help
+(use-package helpful
+  :ensure t
+  :bind
+  (("C-h f" . helpful-callable)    ;; 替换 describe-function
+   ("C-h v" . helpful-variable)    ;; 替换 describe-variable
+   ("C-h k" . helpful-key)         ;; 替换 describe-key
+   ("C-h x" . helpful-command)     ;; 替换 describe-command
+   ("C-c C-d" . helpful-at-point)  ;; 光标下符号
+   ("C-h F" . helpful-function)))  ;; 查看函数，不含宏
+
+(defun kill-other-buffers ()
+  "Kill all buffers except the current one."
+  (interactive)
+  (mapc (lambda (buf)
+          (unless (eq buf (current-buffer))
+            (kill-buffer buf)))
+        (buffer-list)))
+
+;; 关闭其他buffers
+(global-set-key (kbd "C-c k") #'kill-other-buffers)
+;;撤销
+(global-set-key (kbd "C-/") 'undo-only)
+;;撤销刚才的撤销
+(global-set-key (kbd "C-?") 'undo-redo)
+;; 快捷键绑定：使用调整窗口大小
+(global-set-key (kbd "M-<up>")    'enlarge-window)
+(global-set-key (kbd "M-<down>")  'shrink-window)
+(global-set-key (kbd "M-<left>")  'shrink-window-horizontally)
+(global-set-key (kbd "M-<right>") 'enlarge-window-horizontally)
+
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
